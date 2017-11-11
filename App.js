@@ -73,7 +73,7 @@ class HomeScreen extends Component {
               roundAvatar
               onPress={() => this.props.navigation.navigate('Details', {route: item})}
               title={item.name}
-              subtitle={item.routeID}
+              subtitle={<Text style={{color: item.hexcolor}}>{item.routeID}</Text>}
               containerStyle={{borderBottomWidth: 0}}
             />
           )}
