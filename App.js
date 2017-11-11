@@ -1,8 +1,12 @@
 import React, { Component } from 'react'
-import { View, FlatList, Text } from 'react-native'
+import { View, FlatList, Text, StatusBar } from 'react-native'
 import { List, ListItem } from 'react-native-elements'
 import { StackNavigator } from 'react-navigation'
 import BartAPI from './BartAPI'
+
+import Sentry from 'sentry-expo';
+// import { SentrySeverity, SentryLog } from 'react-native-sentry';
+Sentry.config('https://0f075a9222c145849a5b3f7d57dbd637@sentry.io/243329').install();
 
 class Station {
   constructor (name, abbr, lat, lon, address, city, state, zip) {
@@ -53,6 +57,7 @@ class HomeScreen extends Component {
   }
 
   componentDidMount () {
+    StatusBar.setHidden(true)
     this.getRoutes()
   }
 

@@ -25,6 +25,18 @@
     },
     "android": {
       "package": "com.jeffhunken.backbart"
+    },
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "sentry-expo/upload-sourcemaps",
+          "config": {
+            "organization": "Jeff Hunken",
+            "project": "Back-Bart",
+            "authToken": "0bd7c3bdb5e844c78ffdd98b92a8831b907e1e966ed04c79abefd41100e5a76d"
+          }
+        }
+      ]
     }
   }
 }

@@ -2,7 +2,7 @@
   "name": "back-bart",
   "version": "0.0.0",
   "description": "Hello Expo!",
-  "author": null,
+  "author": "Jeff Hunken",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "dependencies": {
@@ -11,6 +11,7 @@
     "react-native": "https://github.com/expo/react-native/archive/sdk-22.0.1.tar.gz",
     "react-native-elements": "^0.17.0",
     "react-navigation": "^1.0.0-beta.15",
-    "react-timer-mixin": "^0.13.3"
+    "react-timer-mixin": "^0.13.3",
+    "sentry-expo": "^1.6.0"
   }
 }
