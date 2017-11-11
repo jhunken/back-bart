@@ -168,10 +168,10 @@ class DetailsScreen extends Component {
   }
 
   getETD = (station) => {
-    if (this.state.route.destination) {
+    if (this.state.route.destination && station.etd) {
       for (let i = 0; i < station.etd.length; i++) {
         let etd = station.etd[i]
-        if (etd.abbreviation.toLowerCase() === this.state.route.destination.toLowerCase()) {
+        if (etd && etd.abbreviation.toLowerCase() === this.state.route.destination.toLowerCase()) {
           let backETD = this.getBackETD(station, etd.estimate[0].direction)
           return {destETD: etd.estimate[0].minutes, backETD: backETD.estimate[0].minutes}
         }
@@ -207,7 +207,6 @@ class DetailsScreen extends Component {
   }
 
   componentDidMount () {
-    console.log(this.props.navigation.state.params.route)
     this.getRouteInfo(this.props.navigation.state.params.route.number)
     this.refreshInterval = setInterval(() => {
       this.handleRefresh(false)
