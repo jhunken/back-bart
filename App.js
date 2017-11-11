@@ -4,9 +4,9 @@ import { List, ListItem } from 'react-native-elements'
 import { StackNavigator } from 'react-navigation'
 import BartAPI from './BartAPI'
 
-import Sentry from 'sentry-expo';
+import Sentry from 'sentry-expo'
 // import { SentrySeverity, SentryLog } from 'react-native-sentry';
-Sentry.config('https://0f075a9222c145849a5b3f7d57dbd637@sentry.io/243329').install();
+Sentry.config('https://0f075a9222c145849a5b3f7d57dbd637@sentry.io/243329').install()
 
 class Station {
   constructor (name, abbr, lat, lon, address, city, state, zip) {
@@ -173,7 +173,6 @@ class DetailsScreen extends Component {
         let etd = station.etd[i]
         if (etd.abbreviation.toLowerCase() === this.state.route.destination.toLowerCase()) {
           let backETD = this.getBackETD(station, etd.estimate[0].direction)
-          console.log(etd.estimate[0].minutes)
           return {destETD: etd.estimate[0].minutes, backETD: backETD.estimate[0].minutes}
         }
       }
@@ -229,11 +228,13 @@ class DetailsScreen extends Component {
   }
 
   selectStation = (station) => {
+    if (!station.abbr) {
+      return
+    }
+    console.log(`selected station: ${station.abbr}`)
     this.setState({departureStation: station})
 
-    console.log(`selected station: ${station.abbr}`)
     let stations = this.state.route.stations
-    // let departureStationMins = isNaN(parseInt(this.getETD(station).destETD, 10)) ? 0 : parseInt(this.getETD(station).destETD, 10)
     let departureStationIdx
     let totalTravelTime = 0
 
