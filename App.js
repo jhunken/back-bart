@@ -8,26 +8,6 @@ import Sentry from 'sentry-expo'
 // import { SentrySeverity, SentryLog } from 'react-native-sentry';
 Sentry.config('https://0f075a9222c145849a5b3f7d57dbd637@sentry.io/243329').install()
 
-class Station {
-  constructor (name, abbr, lat, lon, address, city, state, zip) {
-    this.name = name
-    this.abbr = abbr
-    this.lat = lat
-    this.lon = lon
-    this.address = address
-    this.city = city
-    this.state = state
-    this.zip = zip
-  }
-}
-
-class Train {
-  constructor (trainID, stops) {
-    this.trainID = trainID
-    this.stops = stops
-  }
-}
-
 class HomeScreen extends Component {
   constructor (props) {
     super(props)
@@ -77,9 +57,7 @@ class HomeScreen extends Component {
       <View
         style={{
           height: 1,
-          width: '86%',
           backgroundColor: item.leadingItem.hexcolor,
-          marginLeft: '14%'
         }}
       />
     )
@@ -171,9 +149,9 @@ class DetailsScreen extends Component {
     if (this.state.route.destination && station.etd) {
       for (let i = 0; i < station.etd.length; i++) {
         let etd = station.etd[i]
-        if (etd && etd.abbreviation.toLowerCase() === this.state.route.destination.toLowerCase()) {
-          let backETD = this.getBackETD(station, etd.estimate[0].direction)
-          return {destETD: etd.estimate[0].minutes, backETD: backETD.estimate[0].minutes}
+        if (etd && etd.estimate.length && etd.abbreviation.toLowerCase() === this.state.route.destination.toLowerCase()) {
+          let backETD = this.getBackETD(station, etd.estimate[0].direction) || {estimate: [{minutes: null}]}
+          return {destETD: etd.estimate[0], backETD: backETD.estimate[0]}
         }
       }
       return {destETD: null, backETD: null}
@@ -247,8 +225,8 @@ class DetailsScreen extends Component {
 
           for (let j = departureStationIdx - 1; j >= 0; j--) {
             // iterate through earlier stations summing time between stations until we run out of time
-            let currentStationETD = isNaN(parseInt(this.getETD(stations[j + 1]).destETD, 10)) ? 0 : parseInt(this.getETD(stations[j + 1]).destETD, 10)
-            let nextStationETD = isNaN(parseInt(this.getETD(stations[j]).destETD, 10)) ? 0 : parseInt(this.getETD(stations[j]).destETD, 10)
+            let currentStationETD = isNaN(parseInt(this.getETD(stations[j + 1]).destETD.minutes, 10)) ? 0 : parseInt(this.getETD(stations[j + 1]).destETD.minutes, 10)
+            let nextStationETD = isNaN(parseInt(this.getETD(stations[j]).destETD.minutes, 10)) ? 0 : parseInt(this.getETD(stations[j]).destETD.minutes, 10)
 
             if (nextStationETD > currentStationETD) {
               // this is the last stop for this train
@@ -276,8 +254,22 @@ class DetailsScreen extends Component {
   }
 
   getSubtitle = (station) => {
+    if (!station.key) {
+      return ''
+    }
     let etdObj = this.getETD(station)
-    return `Dest: ${etdObj.destETD} | Back: ${etdObj.backETD}`
+    let destETDMinsStr
+    let backETDMinsStr
+
+    if (etdObj && etdObj.destETD && etdObj.destETD.minutes) {
+      destETDMinsStr = etdObj.destETD.minutes
+    }
+
+    if (etdObj.backETD && etdObj.backETD.minutes) {
+      backETDMinsStr = etdObj.backETD.minutes
+    }
+
+    return `Dest: ${destETDMinsStr || ''} | Back: ${backETDMinsStr || ''}`
   }
 
   renderSeparator = () => {
