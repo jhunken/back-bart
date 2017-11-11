@@ -29,7 +29,7 @@
     "hooks": {
       "postPublish": [
         {
-          "file": "sentry-expo/upload-sourcemaps",
+          "file": "jeff-hunken/back-bart",
           "config": {
             "organization": "Jeff Hunken",
             "project": "Back-Bart",
