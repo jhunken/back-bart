@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import { View, FlatList, Text, StatusBar } from 'react-native'
+import Config from 'react-native-config'
+import { View, FlatList, Text, StatusBar, StyleSheet } from 'react-native'
 import { List, ListItem } from 'react-native-elements'
 import { StackNavigator } from 'react-navigation'
 import BartAPI from './BartAPI'
@@ -19,7 +20,7 @@ class HomeScreen extends Component {
       refreshing: false
     }
 
-    this.apiKey = 'MW9S-E7SL-26DU-VV8V'
+    this.apiKey = Config.BART_API_KEY
     this.bartAPI = new BartAPI(this.apiKey)
 
   }
@@ -58,6 +59,7 @@ class HomeScreen extends Component {
         style={{
           height: 1,
           backgroundColor: item.leadingItem.hexcolor,
+          marginLeft: '6%'
         }}
       />
     )
@@ -73,7 +75,8 @@ class HomeScreen extends Component {
               roundAvatar
               onPress={() => this.props.navigation.navigate('Details', {route: item})}
               title={item.name}
-              subtitle={<Text style={{color: item.hexcolor}}>{item.routeID}</Text>}
+              subtitle={<View style={styles.subtitleView}><Text
+                style={{color: item.hexcolor}}>{item.routeID}</Text></View>}
               containerStyle={{borderBottomWidth: 0}}
             />
           )}
@@ -113,13 +116,16 @@ class DetailsScreen extends Component {
       refreshing: false
     }
 
-    this.apiKey = 'MW9S-E7SL-26DU-VV8V'
+    this.apiKey = Config.BART_API_KEY
     this.bartAPI = new BartAPI(this.apiKey)
   }
 
   getRouteInfo = (routeNumber) => {
     this.bartAPI.getRouteInfo(routeNumber)
       .then(route => {
+        let updatedRoute = this.state.route
+        updatedRoute.destination = route.destination
+        this.setState({route: updatedRoute})
         this.getETDs(route)
       })
       .catch(error => {})
@@ -127,11 +133,14 @@ class DetailsScreen extends Component {
   getETDs = (route) => {
 
     // Retrieve all ETDs and map to stations in the current Route
-    this.bartAPI.getETDs()
+    return this.bartAPI.getETDs()
       .then(updatedStations => {
         route.stations.forEach((preStation, i) => {
           for (let updatedStation of updatedStations) {
             if (route.stations[i].key === updatedStation.key) {
+              if (this.getETD(updatedStation).destETD) {
+                updatedStation.hasETD = true
+              }
               route.stations[i] = updatedStation
             }
           }
@@ -200,7 +209,14 @@ class DetailsScreen extends Component {
       {
         refreshing: showRefresh
       },
-      () => {this.getETDs(this.state.route)}
+      () => {
+        this.getETDs(this.state.route)
+          .then(() => {
+            if (this.state.departureStation) {
+              this.selectStation(this.state.departureStation)
+            }
+          })
+      }
     )
   }
 
@@ -272,38 +288,49 @@ class DetailsScreen extends Component {
     return `▼ Dest: ${destETDMinsStr || 'n/a'}  ▲ Back: ${backETDMinsStr || 'n/a'}`
   }
 
-  renderSeparator = () => {
-    return (
-      <View
-        style={{
-          height: 1,
-          width: '86%',
-          backgroundColor: this.state.route.hexcolor,
-          marginLeft: '14%'
-        }}
-      />
-    )
+  renderSeparator = (listObj) => {
+    let item = listObj.leadingItem
+    if (item.hasETD) {
+      return (
+        <View
+          style={{
+            height: 1,
+            width: '100%',
+            backgroundColor: this.state.route.hexcolor,
+            marginLeft: '6%'
+          }}
+        />
+      )
+    }
+    return null
+  }
+
+  renderListItem = (listObj) => {
+    let item = listObj.item
+    if (item.hasETD) {
+      return (
+        <ListItem
+          roundAvatar
+          title={item.key}
+          subtitle={this.getSubtitle(item)}
+          containerStyle={{borderBottomWidth: 0}}
+          onPress={() => this.selectStation(item)}
+        />)
+    }
   }
 
   render () {
     return (
       <View>
+        <Text>Route {this.state.route.name}</Text>
         <Text>From {this.state.departureStation.name}</Text>
         <Text>Go back to {this.state.furthestStation.name}</Text>
         <List containerStyle={{borderTopWidth: 0, borderBottomWidth: 0}}>
           <FlatList
             data={this.state.route.stations}
-            renderItem={({item}) => (
-              <ListItem
-                roundAvatar
-                title={item.key}
-                subtitle={this.getSubtitle(item)}
-                containerStyle={{borderBottomWidth: 0}}
-                onPress={() => this.selectStation(item)}
-              />
-            )}
+            renderItem={(item) => this.renderListItem(item)}
             keyExtractor={item => item.key}
-            ItemSeparatorComponent={this.renderSeparator}
+            ItemSeparatorComponent={(item) => this.renderSeparator(item)}
             onRefresh={() => this.handleRefresh(true)}
             refreshing={this.state.refreshing}
 
@@ -313,6 +340,14 @@ class DetailsScreen extends Component {
     )
   }
 }
+
+const styles = StyleSheet.create({
+  subtitleView: {
+    flexDirection: 'row',
+    paddingLeft: 10,
+    paddingTop: 5
+  },
+})
 
 const RootNavigator = StackNavigator({
   Home: {
