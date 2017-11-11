@@ -269,7 +269,7 @@ class DetailsScreen extends Component {
       backETDMinsStr = etdObj.backETD.minutes
     }
 
-    return `Dest: ${destETDMinsStr || ''} | Back: ${backETDMinsStr || ''}`
+    return `▼ Dest: ${destETDMinsStr || 'n/a'}  ▲ Back: ${backETDMinsStr || 'n/a'}`
   }
 
   renderSeparator = () => {
