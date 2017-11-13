@@ -301,6 +301,7 @@ class DetailsScreen extends Component {
               <StationItem
                 station={item}
                 selectStation={this.selectStation}
+                departureStation={this.state.departureStation}
               />
             )}
             keyExtractor={item => item.key}
