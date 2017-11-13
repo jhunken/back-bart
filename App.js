@@ -4,6 +4,7 @@ import { View, FlatList, Text, StatusBar, StyleSheet } from 'react-native'
 import { List, ListItem } from 'react-native-elements'
 import { StackNavigator } from 'react-navigation'
 import BartAPI from './BartAPI'
+import StationItem from './components/StationItem'
 
 import Sentry from 'sentry-expo'
 // import { SentrySeverity, SentryLog } from 'react-native-sentry';
@@ -138,8 +139,11 @@ class DetailsScreen extends Component {
         route.stations.forEach((preStation, i) => {
           for (let updatedStation of updatedStations) {
             if (route.stations[i].key === updatedStation.key) {
-              if (this.getETD(updatedStation).destETD) {
+              let stationETDObj = this.getETD(updatedStation)
+              if (stationETDObj.destETD) {
                 updatedStation.hasETD = true
+                updatedStation.destETD = stationETDObj.destETD
+                updatedStation.backETD = stationETDObj.backETD
               }
               route.stations[i] = updatedStation
             }
@@ -220,80 +224,13 @@ class DetailsScreen extends Component {
     )
   }
 
-  selectStation = (station) => {
-    if (!station.abbr) {
-      return
-    }
-    console.log(`selected station: ${station.abbr}`)
+  updateDepartureStation = (station) => {
     this.setState({departureStation: station})
-
-    let stations = this.state.route.stations
-    let departureStationIdx
-    let totalTravelTime = 0
-
-    // get position in array for depatureStation and work backwards
-    for (let i = 0; i < stations.length; i++) {
-      if (stations[i].abbr.toLowerCase() === station.abbr.toLowerCase()) {
-
-        // Found selected station
-        departureStationIdx = i
-        if (departureStationIdx) {
-
-          for (let j = departureStationIdx - 1; j >= 0; j--) {
-            // iterate through earlier stations summing time between stations until we run out of time
-            let currentStationETD = isNaN(parseInt(this.getETD(stations[j + 1]).destETD.minutes, 10)) ? 0 : parseInt(this.getETD(stations[j + 1]).destETD.minutes, 10)
-            let nextStationETD = isNaN(parseInt(this.getETD(stations[j]).destETD.minutes, 10)) ? 0 : parseInt(this.getETD(stations[j]).destETD.minutes, 10)
-
-            if (nextStationETD > currentStationETD) {
-              // this is the last stop for this train
-              console.log(`Get on the train here: ${stations[i].abbr}`)
-              this.setState({furthestStation: stations[j + 1]})
-              break
-            }
-            totalTravelTime = (currentStationETD - nextStationETD) + totalTravelTime
-            console.log(`Station: ${stations[j].abbr}; Total Travel Time: ${totalTravelTime}`)
-
-            if (totalTravelTime >= nextStationETD) {
-              // not enough time
-              console.log('Go back to: ' + stations[j + 1].abbr)
-              this.setState({furthestStation: stations[j + 1]})
-              break
-            }
-          }
-
-        }
-        break
-      }
-
-    }
-
   }
 
-  getSubtitle = (station) => {
-    if (!station.key) {
-      return ''
-    }
-    let etdObj = this.getETD(station)
-    let destETDMinsStr
-    let backETDMinsStr
-
-    if (etdObj && etdObj.destETD && etdObj.destETD.minutes) {
-      destETDMinsStr = etdObj.destETD.minutes
-      if(destETDMinsStr !== 'Leaving') {
-        destETDMinsStr = destETDMinsStr + 'm'
-      }
-    }
-
-    if (etdObj.backETD && etdObj.backETD.minutes) {
-      backETDMinsStr = etdObj.backETD.minutes
-      if(backETDMinsStr !== 'Leaving') {
-        backETDMinsStr = backETDMinsStr + 'm'
-      }
-    }
-
-    return `▼ Dest: ${destETDMinsStr || 'n/a'}  ▲ Back: ${backETDMinsStr || 'n/a'}`
+  updateFurthestStation = (station) => {
+    this.setState({furthestStation: station})
   }
-
   renderSeparator = (listObj) => {
     let item = listObj.leadingItem
     if (item.hasETD) {
@@ -311,20 +248,6 @@ class DetailsScreen extends Component {
     return null
   }
 
-  renderListItem = (listObj) => {
-    let item = listObj.item
-    if (item.hasETD) {
-      return (
-        <ListItem
-          roundAvatar
-          title={item.key}
-          subtitle={this.getSubtitle(item)}
-          containerStyle={{borderBottomWidth: 0}}
-          onPress={() => this.selectStation(item)}
-        />)
-    }
-  }
-
   render () {
     return (
       <View>
@@ -334,7 +257,14 @@ class DetailsScreen extends Component {
         <List containerStyle={{borderTopWidth: 0, borderBottomWidth: 0}}>
           <FlatList
             data={this.state.route.stations}
-            renderItem={(item) => this.renderListItem(item)}
+            renderItem={(item) => (
+              <StationItem
+                station={item}
+                stations={this.state.route.stations}
+                updateDepartureStation={this.updateDepartureStation}
+                updateFurthestStation={this.updateFurthestStation}
+              />
+            )}
             keyExtractor={item => item.key}
             ItemSeparatorComponent={(item) => this.renderSeparator(item)}
             onRefresh={() => this.handleRefresh(true)}
