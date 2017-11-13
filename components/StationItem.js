@@ -3,8 +3,7 @@ import { StyleSheet } from 'react-native'
 import { ListItem, Text } from 'react-native-elements'
 
 const StationItem = (props) => {
-
-  let item = props.station.item
+  let item = props.station
   let getSubtitle = (station) => {
     if (!station.key) {
       return ''
