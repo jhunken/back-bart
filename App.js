@@ -4,6 +4,7 @@ import { View, FlatList, Text, StatusBar, StyleSheet } from 'react-native'
 import { List, ListItem } from 'react-native-elements'
 import { StackNavigator } from 'react-navigation'
 import BartAPI from './BartAPI'
+import StationItem from './components/StationItem'
 
 import Sentry from 'sentry-expo'
 // import { SentrySeverity, SentryLog } from 'react-native-sentry';
@@ -138,8 +139,11 @@ class DetailsScreen extends Component {
         route.stations.forEach((preStation, i) => {
           for (let updatedStation of updatedStations) {
             if (route.stations[i].key === updatedStation.key) {
-              if (this.getETD(updatedStation).destETD) {
+              let stationETDObj = this.getETD(updatedStation)
+              if (stationETDObj.destETD) {
                 updatedStation.hasETD = true
+                updatedStation.destETD = stationETDObj.destETD
+                updatedStation.backETD = stationETDObj.backETD
               }
               route.stations[i] = updatedStation
             }
@@ -221,7 +225,7 @@ class DetailsScreen extends Component {
   }
 
   selectStation = (station) => {
-    if (!station.abbr) {
+    if (!station || !station.abbr) {
       return
     }
     console.log(`selected station: ${station.abbr}`)
@@ -241,8 +245,8 @@ class DetailsScreen extends Component {
 
           for (let j = departureStationIdx - 1; j >= 0; j--) {
             // iterate through earlier stations summing time between stations until we run out of time
-            let currentStationETD = isNaN(parseInt(this.getETD(stations[j + 1]).destETD.minutes, 10)) ? 0 : parseInt(this.getETD(stations[j + 1]).destETD.minutes, 10)
-            let nextStationETD = isNaN(parseInt(this.getETD(stations[j]).destETD.minutes, 10)) ? 0 : parseInt(this.getETD(stations[j]).destETD.minutes, 10)
+            let currentStationETD = isNaN(parseInt(stations[j + 1].destETD.minutes, 10)) ? 0 : parseInt(stations[j + 1].destETD.minutes, 10)
+            let nextStationETD = isNaN(parseInt(stations[j].destETD.minutes, 10)) ? 0 : parseInt(stations[j].destETD.minutes, 10)
 
             if (nextStationETD > currentStationETD) {
               // this is the last stop for this train
@@ -264,34 +268,7 @@ class DetailsScreen extends Component {
         }
         break
       }
-
     }
-
-  }
-
-  getSubtitle = (station) => {
-    if (!station.key) {
-      return ''
-    }
-    let etdObj = this.getETD(station)
-    let destETDMinsStr
-    let backETDMinsStr
-
-    if (etdObj && etdObj.destETD && etdObj.destETD.minutes) {
-      destETDMinsStr = etdObj.destETD.minutes
-      if(destETDMinsStr !== 'Leaving') {
-        destETDMinsStr = destETDMinsStr + 'm'
-      }
-    }
-
-    if (etdObj.backETD && etdObj.backETD.minutes) {
-      backETDMinsStr = etdObj.backETD.minutes
-      if(backETDMinsStr !== 'Leaving') {
-        backETDMinsStr = backETDMinsStr + 'm'
-      }
-    }
-
-    return `▼ Dest: ${destETDMinsStr || 'n/a'}  ▲ Back: ${backETDMinsStr || 'n/a'}`
   }
 
   renderSeparator = (listObj) => {
@@ -311,20 +288,6 @@ class DetailsScreen extends Component {
     return null
   }
 
-  renderListItem = (listObj) => {
-    let item = listObj.item
-    if (item.hasETD) {
-      return (
-        <ListItem
-          roundAvatar
-          title={item.key}
-          subtitle={this.getSubtitle(item)}
-          containerStyle={{borderBottomWidth: 0}}
-          onPress={() => this.selectStation(item)}
-        />)
-    }
-  }
-
   render () {
     return (
       <View>
@@ -334,7 +297,13 @@ class DetailsScreen extends Component {
         <List containerStyle={{borderTopWidth: 0, borderBottomWidth: 0}}>
           <FlatList
             data={this.state.route.stations}
-            renderItem={(item) => this.renderListItem(item)}
+            renderItem={(item) => (
+              <StationItem
+                station={item}
+                selectStation={this.selectStation}
+                departureStation={this.state.departureStation}
+              />
+            )}
             keyExtractor={item => item.key}
             ItemSeparatorComponent={(item) => this.renderSeparator(item)}
             onRefresh={() => this.handleRefresh(true)}
