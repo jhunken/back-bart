@@ -279,10 +279,16 @@ class DetailsScreen extends Component {
 
     if (etdObj && etdObj.destETD && etdObj.destETD.minutes) {
       destETDMinsStr = etdObj.destETD.minutes
+      if(destETDMinsStr !== 'Leaving') {
+        destETDMinsStr = destETDMinsStr + 'm'
+      }
     }
 
     if (etdObj.backETD && etdObj.backETD.minutes) {
       backETDMinsStr = etdObj.backETD.minutes
+      if(backETDMinsStr !== 'Leaving') {
+        backETDMinsStr = backETDMinsStr + 'm'
+      }
     }
 
     return `▼ Dest: ${destETDMinsStr || 'n/a'}  ▲ Back: ${backETDMinsStr || 'n/a'}`
@@ -353,7 +359,7 @@ const RootNavigator = StackNavigator({
   Home: {
     screen: HomeScreen,
     navigationOptions: {
-      headerTitle: 'Home',
+      headerTitle: 'Back Bart',
     },
   },
   Details: {

@@ -21,7 +21,8 @@
       ]
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jeffhunken.backbart"
     },
     "android": {
       "package": "com.jeffhunken.backbart"
