@@ -5,6 +5,9 @@
   "author": "Jeff Hunken",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "version": "conventional-changelog -p angular -i CHANGELOG.md -s"
+  },
   "dependencies": {
     "expo": "^22.0.0",
     "react": "16.0.0-beta.5",
