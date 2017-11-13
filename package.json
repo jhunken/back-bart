@@ -1,10 +1,13 @@
 {
   "name": "back-bart",
-  "version": "0.0.0",
-  "description": "Hello Expo!",
+  "version": "0.0.1",
+  "description": "Back Bart",
   "author": "Jeff Hunken",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "version": "conventional-changelog -p angular -i CHANGELOG.md -s"
+  },
   "dependencies": {
     "expo": "^22.0.0",
     "react": "16.0.0-beta.5",
