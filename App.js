@@ -224,13 +224,53 @@ class DetailsScreen extends Component {
     )
   }
 
-  updateDepartureStation = (station) => {
+  selectStation = (station) => {
+    if (!station || !station.abbr) {
+      return
+    }
+    console.log(`selected station: ${station.abbr}`)
     this.setState({departureStation: station})
+
+    let stations = this.state.route.stations
+    let departureStationIdx
+    let totalTravelTime = 0
+
+    // get position in array for depatureStation and work backwards
+    for (let i = 0; i < stations.length; i++) {
+      if (stations[i].abbr.toLowerCase() === station.abbr.toLowerCase()) {
+
+        // Found selected station
+        departureStationIdx = i
+        if (departureStationIdx) {
+
+          for (let j = departureStationIdx - 1; j >= 0; j--) {
+            // iterate through earlier stations summing time between stations until we run out of time
+            let currentStationETD = isNaN(parseInt(stations[j + 1].destETD.minutes, 10)) ? 0 : parseInt(stations[j + 1].destETD.minutes, 10)
+            let nextStationETD = isNaN(parseInt(stations[j].destETD.minutes, 10)) ? 0 : parseInt(stations[j].destETD.minutes, 10)
+
+            if (nextStationETD > currentStationETD) {
+              // this is the last stop for this train
+              console.log(`Get on the train here: ${stations[i].abbr}`)
+              this.setState({furthestStation: stations[j + 1]})
+              break
+            }
+            totalTravelTime = (currentStationETD - nextStationETD) + totalTravelTime
+            console.log(`Station: ${stations[j].abbr}; Total Travel Time: ${totalTravelTime}`)
+
+            if (totalTravelTime >= nextStationETD) {
+              // not enough time
+              console.log('Go back to: ' + stations[j + 1].abbr)
+              this.setState({furthestStation: stations[j + 1]})
+              break
+            }
+          }
+
+        }
+        break
+      }
+    }
   }
 
-  updateFurthestStation = (station) => {
-    this.setState({furthestStation: station})
-  }
   renderSeparator = (listObj) => {
     let item = listObj.leadingItem
     if (item.hasETD) {
@@ -260,9 +300,7 @@ class DetailsScreen extends Component {
             renderItem={(item) => (
               <StationItem
                 station={item}
-                stations={this.state.route.stations}
-                updateDepartureStation={this.updateDepartureStation}
-                updateFurthestStation={this.updateFurthestStation}
+                selectStation={this.selectStation}
               />
             )}
             keyExtractor={item => item.key}
