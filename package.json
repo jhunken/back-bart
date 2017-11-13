@@ -1,7 +1,7 @@
 {
   "name": "back-bart",
-  "version": "0.0.0",
-  "description": "Hello Expo!",
+  "version": "0.0.1",
+  "description": "Back Bart",
   "author": "Jeff Hunken",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
