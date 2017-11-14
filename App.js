@@ -299,7 +299,7 @@ class DetailsScreen extends Component {
             data={this.state.route.stations}
             renderItem={(item) => (
               <StationItem
-                station={item}
+                station={item.item}
                 selectStation={this.selectStation}
                 departureStation={this.state.departureStation}
               />
